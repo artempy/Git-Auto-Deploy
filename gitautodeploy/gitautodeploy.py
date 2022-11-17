@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+import sys
+
+if sys.version[0] == '2':
+    reload(sys)
+    sys.setdefaultencoding('UTF8')
+
 if __name__ == '__main__':
     import sys
     print("Critical - GAD must be started as a python module, for example using python -m gitautodeploy")
