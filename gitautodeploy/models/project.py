@@ -126,6 +126,7 @@ class Project(collections.MutableMapping):
         import time
         import json
 
+        errors = []
         event = DeployEvent(self)
         event_store.register_action(event)
         event.set_waiting(True)
@@ -134,7 +135,7 @@ class Project(collections.MutableMapping):
         # In case there is no path configured for the repository, no pull will
         # be made.
         if 'path' not in self:
-            res = GitWrapper.deploy(self)
+            res, errors = GitWrapper.deploy(self)
             event.log_info("%s" % res)
             event.set_waiting(False)
             event.set_success(True)
@@ -187,7 +188,7 @@ class Project(collections.MutableMapping):
                 n -= 1
 
             if 0 < n:
-                res = GitWrapper.deploy(self)
+                res, errors = GitWrapper.deploy(self)
 
         #except Exception as e:
         #    logger.error('Error during \'pull\' or \'deploy\' operation on path: %s' % self['path'])
@@ -205,6 +206,7 @@ class Project(collections.MutableMapping):
                 waiting_lock.release()
 
         event.log_info("Deploy commands were executed")
+        if errors:
+            pass
         event.set_waiting(False)
         event.set_success(True)
-

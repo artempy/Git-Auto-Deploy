@@ -29,6 +29,9 @@ class ProcessWrapper():
         stdout = stdout.decode("utf-8")
         stderr = stderr.decode("utf-8")
 
+        errors = []
+        errors_info = []
+
         if stdout:
             for line in stdout.strip().split("\n"):
                 logger.info(line)
@@ -37,7 +40,9 @@ class ProcessWrapper():
             for line in stderr.strip().split("\n"):
                 if supressStderr:
                     logger.info(line)
+                    errors_info.append(line)
                 else:
                     logger.error(line)
+                    errors.append(line)
 
-        return p.returncode
+        return p.returncode, errors, errors_info

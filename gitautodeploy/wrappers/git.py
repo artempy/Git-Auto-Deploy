@@ -150,9 +150,18 @@ class GitWrapper():
         cwd = (repo_config['path'] if 'path' in repo_config else None)
 
         res = []
+        errors = []
         for cmd in repo_config['deploy_commands']:
-            res.append(ProcessWrapper().call([cmd], cwd=cwd, shell=True))
+            return_command = ProcessWrapper().call([cmd], cwd=cwd, shell=True)
+            res.append(return_command[0])
+            errors.append({
+                'command': cmd,
+                'repo_url': repo_config.get('url'),
+                'return_code': return_command[0],
+                'errors': return_command[1],
+                'errors_info': return_command[2],
+            })
 
         logger.info('%s commands executed with status; %s' % (str(len(res)), str(res)))
 
-        return res
+        return res, errors
