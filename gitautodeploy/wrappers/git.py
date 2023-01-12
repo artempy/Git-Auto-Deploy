@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+import os
+
+from gitautodeploy.wrappers.notify_smtp import send_notify_mail
+
 
 class GitWrapper():
     """Wraps the git client. Currently uses git through shell command
@@ -172,7 +176,14 @@ class GitWrapper():
 
         logger.info('%s commands executed with status; %s' % (str(len(res)), str(res)))
 
-        message = u"Репозиторий: " + repo_config.get('url') + "\n"
+        repo_url  = os.path.basename(repo_config.get('url')).replace('.git', '')
+
+        message = u"Репозиторий: " + repo_url + "\n"
+
+        message_log = ''
+        message_log_error = ''
+
+        status_return = u'Успех'
 
         for error in errors:
             if error['return_code'] == 0:
@@ -183,10 +194,16 @@ class GitWrapper():
             message += u'Статус выполнения команды "' + error['command'] + '" деплоя: ' + status_return + "\n"
 
             if error['errors']:
-                message += u"Лог процесса с ошибками: " + "\n".join(error['errors']) + "\n"
+                message_log_error = "\n".join(error['errors'])
             if error['errors_info']:
-                message += u"Лог процесса: " + "\n".join(error['errors_info']) + "\n"
+                message_log = "\n".join(error['errors_info'])
+
+        # if repo_config['smtp_server'] and repo_config['smtp_port'] and repo_config['smtp_login'] and repo_config['smtp_password'] and repo_config['smtp_to'] and repo_config['smtp_from']:
+        send_notify_mail(
+            repo_config, message, status_return, message_log_error, message_log, repo_url
+        )
 
         logger.info(u"\n\n\n=====================" + message + "=====================\n\n\n")
+        logger.info("An email has been sent to " + ", ".join(repo_config['smtp_to']))
 
         return res, errors
