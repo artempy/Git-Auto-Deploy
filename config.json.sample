@@ -45,7 +45,14 @@
       "branch": "master",
       "remote": "origin",
       "path": "~/repositories/Git-Auto-Deploy",
-      "deploy": "echo deploying"
+      "deploy": "echo deploying",
+      "send_notify_email": true,
+      "smtp_server": "smtp.example.com",
+      "smtp_port": 465,
+      "smtp_login": "login@example.com",
+      "smtp_password": "smtp_password",
+      "smtp_to": ["email_to1@example.com", "email_to2@example.com"],
+      "smtp_from": "email@example.com"
     },
     {
       "url": "https://github.com/github/gitignore",
