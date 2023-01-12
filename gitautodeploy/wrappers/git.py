@@ -199,7 +199,8 @@ class GitWrapper():
             if error['errors_info']:
                 message_log = "\n".join(error['errors_info'])
 
-        if repo_config.get('smtp_server') \
+        if repo_config.get('send_notify_email') \
+                and repo_config.get('smtp_server') \
                 and repo_config.get('smtp_port') \
                 and repo_config.get('smtp_login') \
                 and repo_config.get('smtp_password') \
@@ -209,7 +210,7 @@ class GitWrapper():
                 repo_config, message, status_return, message_log_error, message_log, repo_url
             )
 
-        logger.info(u"\n\n\n=====================" + message + "=====================\n\n\n")
+        logger.info(u"\n\n\n=====================\n" + message + "=====================\n\n\n")
         logger.info("An email has been sent to " + ", ".join(repo_config['smtp_to']))
 
         return res, errors

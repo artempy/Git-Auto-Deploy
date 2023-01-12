@@ -15,27 +15,34 @@ def send_notify_mail(repo_config, message, status_return, errors_text,
     filepath_errors = "logs/errors_" + date_now + '.txt'
     if not os.path.exists("logs"):
         os.makedirs("logs")
-    with open(filepath_info, 'w') as f:
-        f.write(errors_info_text)
-    with open(filepath_errors, 'w') as f:
-        f.write(errors_text)
+
+    if errors_info_text:
+        with open(filepath_info, 'w') as f:
+            f.write(errors_info_text)
+    if errors_text:
+        with open(filepath_errors, 'w') as f:
+            f.write(errors_text)
 
 
     address = repo_config['smtp_from']
 
-    # Compose attachment
-    basename = os.path.basename(filepath_info)
-    part_info = MIMEBase('application', "octet-stream")
-    part_info.set_payload(open(filepath_info,"rb").read() )
-    part_info.add_header('Content-Disposition', 'attachment; filename="%s"' % basename)
-    encoders.encode_base64(part_info)
+    part_info, part_error = None, None
 
-    # Compose attachment
-    basename = os.path.basename(filepath_errors)
-    part_error = MIMEBase('application', "octet-stream")
-    part_error.set_payload(open(filepath_errors, "rb").read())
-    part_error.add_header('Content-Disposition', 'attachment; filename="%s"' % basename)
-    encoders.encode_base64(part_error)
+    if errors_info_text:
+        # Compose attachment
+        basename = os.path.basename(filepath_info)
+        part_info = MIMEBase('application', "octet-stream")
+        part_info.set_payload(open(filepath_info,"rb").read() )
+        part_info.add_header('Content-Disposition', 'attachment; filename="%s"' % basename)
+        encoders.encode_base64(part_info)
+
+    if errors_text:
+        # Compose attachment
+        basename = os.path.basename(filepath_errors)
+        part_error = MIMEBase('application', "octet-stream")
+        part_error.set_payload(open(filepath_errors, "rb").read())
+        part_error.add_header('Content-Disposition', 'attachment; filename="%s"' % basename)
+        encoders.encode_base64(part_error)
 
     # Compose message
     msg = MIMEMultipart()
@@ -44,8 +51,11 @@ def send_notify_mail(repo_config, message, status_return, errors_text,
     subject = u'Завершен процесс деплоя ' + repo_url + u' со статусом ' + status_return
     msg['Subject'] = subject.encode('utf-8')
     msg.attach(MIMEText(message.encode('utf-8'), 'plain', 'utf-8'))
-    msg.attach(part_info)
-    msg.attach(part_error)
+
+    if errors_info_text and part_info:
+        msg.attach(part_info)
+    if errors_text and part_error:
+        msg.attach(part_error)
 
     # Send mail
     smtp = SMTP_SSL()
