@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 class GitWrapper():
     """Wraps the git client. Currently uses git through shell command
     invocations."""
@@ -31,19 +33,21 @@ class GitWrapper():
         commands.append('git submodule update --init --recursive')
 
         # All commands need to success
-        for command in commands:
-            res = ProcessWrapper().call(command, cwd=repo_config['path'], shell=True, supressStderr=True)
+        res = []
 
-            if res != 0:
+        for command in commands:
+            return_command = ProcessWrapper().call(command, cwd=repo_config['path'], shell=True, supressStderr=True)
+            res.append(return_command[0])
+            if return_command[0] != 0:
                 logger.error("Command '%s' failed with exit code %s" % (command, res))
                 break
 
-        if res == 0 and os.path.isdir(repo_config['path']):
+        if res[0] == 0 and os.path.isdir(repo_config['path']):
             logger.info("Repository %s successfully initialized" % repo_config['path'])
         else:
             logger.error("Unable to init repository %s" % repo_config['path'])
 
-        return int(res)
+        return int(res[0])
 
     @staticmethod
     def pull(repo_config):
@@ -81,19 +85,21 @@ class GitWrapper():
             commands.append(repo_config['postpull'])
 
         # All commands need to success
+        res = []
         for command in commands:
-            res = ProcessWrapper().call(command, cwd=repo_config['path'], shell=True, supressStderr=True)
+            return_command = ProcessWrapper().call(command, cwd=repo_config['path'], shell=True, supressStderr=True)
+            res.append(return_command[0])
 
-            if res != 0:
+            if return_command[0] != 0:
                 logger.error("Command '%s' failed with exit code %s" % (command, res))
                 break
 
-        if res == 0 and os.path.isdir(repo_config['path']):
+        if res[0] == 0 and os.path.isdir(repo_config['path']):
             logger.info("Repository %s successfully updated" % repo_config['path'])
         else:
             logger.error("Unable to update repository %s" % repo_config['path'])
 
-        return int(res)
+        return int(res[0])
 
     @staticmethod
     def clone(repo_config):
@@ -116,19 +122,21 @@ class GitWrapper():
         commands.append('git clone --recursive ' + repo_config['url'] + ' -b ' + repo_config['branch'] + ' ' + repo_config['path'])
 
         # All commands need to success
+        res = []
         for command in commands:
-            res = ProcessWrapper().call(command, shell=True)
+            return_command = ProcessWrapper().call(command, shell=True)
+            res.append(return_command[0])
 
-            if res != 0:
+            if return_command[0] != 0:
                 logger.error("Command '%s' failed with exit code %s" % (command, res))
                 break
 
-        if res == 0 and os.path.isdir(repo_config['path']):
+        if res[0] == 0 and os.path.isdir(repo_config['path']):
             logger.info("Repository %s successfully cloned" % repo_config['url'])
         else:
             logger.error("Unable to clone repository %s" % repo_config['url'])
 
-        return int(res)
+        return int(res[0])
 
     @staticmethod
     def deploy(repo_config):
@@ -163,5 +171,22 @@ class GitWrapper():
             })
 
         logger.info('%s commands executed with status; %s' % (str(len(res)), str(res)))
+
+        message = u"Репозиторий: " + repo_config.get('url') + "\n"
+
+        for error in errors:
+            if error['return_code'] == 0:
+                status_return = u'Успех'
+            else:
+                status_return = u'Ошибка'
+
+            message += u'Статус выполнения команды "' + error['command'] + '" деплоя: ' + status_return + "\n"
+
+            if error['errors']:
+                message += u"Лог процесса с ошибками: " + "\n".join(error['errors']) + "\n"
+            if error['errors_info']:
+                message += u"Лог процесса: " + "\n".join(error['errors_info']) + "\n"
+
+        logger.info(u"\n\n\n=====================" + message + "=====================\n\n\n")
 
         return res, errors

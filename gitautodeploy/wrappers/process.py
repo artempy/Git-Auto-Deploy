@@ -35,6 +35,7 @@ class ProcessWrapper():
         if stdout:
             for line in stdout.strip().split("\n"):
                 logger.info(line)
+                errors_info.append(line)
 
         if stderr:
             for line in stderr.strip().split("\n"):
