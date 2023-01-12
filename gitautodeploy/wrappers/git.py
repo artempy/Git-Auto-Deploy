@@ -179,6 +179,7 @@ class GitWrapper():
         repo_url  = os.path.basename(repo_config.get('url')).replace('.git', '')
 
         message = u"Репозиторий: " + repo_url + "\n"
+        message += u"Ветка: " + str(repo_config.get('branch')) + "\n"
 
         message_log = ''
         message_log_error = ''
